@@ -1,6 +1,6 @@
 from detect import MACOSX
 from Miner import Miner
-from Queue import Empty
+from queue import Empty
 from hashlib import md5
 from log import say_line
 from sha256 import partial, calculateF
@@ -21,7 +21,7 @@ try:
 	import pyopencl as cl
 	PYOPENCL = True
 except ImportError:
-	print '\nNo PyOpenCL\n'
+	print('\nNo PyOpenCL\n')
 
 if PYOPENCL:
 	try:
@@ -29,9 +29,9 @@ if PYOPENCL:
 		if len(platforms):
 			OPENCL = True
 		else:
-			print '\nNo OpenCL platforms\n'
+			print('\nNo OpenCL platforms\n')
 	except Exception:
-		print '\nNo OpenCL\n'
+		print('\nNo OpenCL\n')
 
 def vectors_definition():
 	if MACOSX:
@@ -58,17 +58,17 @@ if OPENCL:
 		from ctypes import sizeof, byref, c_int, cast
 		from collections import namedtuple
 		if ADL_Main_Control_Create(ADL_Main_Memory_Alloc, 1) != ADL_OK:
-			print "\nCouldn't initialize ADL interface.\n"
+			print("\nCouldn't initialize ADL interface.\n")
 		else:
 			ADL = True
 			adl_lock = Lock()
 	except ImportError:
 		if has_amd():
-			print '\nWARNING: no adl3 module found (github.com/mjmvisser/adl3), temperature control is disabled\n'
+			print('\nWARNING: no adl3 module found (github.com/mjmvisser/adl3), temperature control is disabled\n')
 	except OSError:# if no ADL is present i.e. no AMD platform
-		print '\nWARNING: ADL missing (no AMD platform?), temperature control is disabled\n'
+		print('\nWARNING: ADL missing (no AMD platform?), temperature control is disabled\n')
 else:
-	print "\nNot using OpenCL\n"
+	print("\nNot using OpenCL\n")
 
 def shutdown():
 	if ADL:
@@ -88,9 +88,9 @@ def initialize(options):
 	platforms = cl.get_platforms()
 
 	if options.platform >= len(platforms) or (options.platform == -1 and len(platforms) > 1):
-		print 'Wrong platform or more than one OpenCL platforms found, use --platform to select one of the following\n'
-		for i in xrange(len(platforms)):
-			print '[%d]\t%s' % (i, platforms[i].name)
+		print('Wrong platform or more than one OpenCL platforms found, use --platform to select one of the following\n')
+		for i in range(len(platforms)):
+			print('[%d]\t%s' % (i, platforms[i].name))
 		sys.exit()
 
 	if options.platform == -1:
@@ -99,21 +99,21 @@ def initialize(options):
 	devices = platforms[options.platform].get_devices()
 
 	if not options.device and devices:
-		print '\nOpenCL devices:\n'
-		for i in xrange(len(devices)):
-			print '[%d]\t%s' % (i, devices[i].name)
-		print '\nNo devices specified, using all GPU devices\n'
+		print('\nOpenCL devices:\n')
+		for i in range(len(devices)):
+			print('[%d]\t%s' % (i, devices[i].name))
+		print('\nNo devices specified, using all GPU devices\n')
 
 	miners = [
 		OpenCLMiner(i, options)
-		for i in xrange(len(devices))
+		for i in range(len(devices))
 		if (
 			(not options.device and devices[i].type == cl.device_type.GPU) or
 			(i in options.device)
 		)
 	]
 
-	for i in xrange(len(miners)):
+	for i in range(len(miners)):
 		miners[i].worksize = options.worksize[min(i, len(options.worksize) - 1)]
 		miners[i].frames = options.frames[min(i, len(options.frames) - 1)]
 		miners[i].frameSleep = options.frameSleep[min(i, len(options.frameSleep) - 1)]
@@ -146,7 +146,7 @@ class OpenCLMiner(Miner):
 		return str(self.options.platform) + ':' + str(self.device_index) + ':' + self.device_name
 
 	def nonce_generator(self, nonces):
-		for i in xrange(0, len(nonces) - 4, 4):
+		for i in range(0, len(nonces) - 4, 4):
 			nonce = bytearray_to_uint32(nonces[i:i+4])
 			if nonce:
 				yield nonce
@@ -249,7 +249,7 @@ class OpenCLMiner(Miner):
 				last_rated = now; threads_run = 0
 
 			queue.finish()
-			cl.enqueue_read_buffer(queue, output_buffer, output)
+			cl.enqueue_copy(queue, output_buffer, output)
 			queue.finish()
 
 			if output[-1]:
@@ -267,7 +267,7 @@ class OpenCLMiner(Miner):
 				result.miner = self
 				self.switch.put(result)
 				output[:] = b'\x00' * len(output)
-				cl.enqueue_write_buffer(queue, output_buffer, output)
+				cl.enqueue_copy(queue, output_buffer, output)
 
 			if not self.switch.update_time:
 				if nonces_left < 3 * global_threads * self.frames:
@@ -320,7 +320,7 @@ class OpenCLMiner(Miner):
 		kernel_file = open('phatk.cl', 'r')
 		kernel = kernel_file.read()
 		kernel_file.close()
-		m = md5(); m.update(''.join([self.device.platform.name, self.device.platform.version, self.device.name, self.defines, kernel]))
+		m = md5(); m.update(''.join([self.device.platform.name, self.device.platform.version, self.device.name, self.defines, kernel]).encode("utf-8"))
 		cache_name = '%s.elf' % m.hexdigest()
 		binary = None
 		try:
@@ -401,7 +401,7 @@ class OpenCLMiner(Miner):
 					(a, b, c, d, nameTableOffset, size, e, f, g, h) = unpack('IIIIIIIIII', data2[offset+index * entrySize : offset+(index+1) * entrySize])
 					header = data2[offset : offset+count * entrySize]
 					firstText = True
-					for i in xrange(count):
+					for i in range(count):
 						entry = header[i * entrySize : (i+1) * entrySize]
 						(nameIndex, a, b, c, offset, size, d, e, f, g) = unpack('IIIIIIIIII', entry)
 						nameOffset = nameTableOffset + nameIndex
@@ -411,7 +411,7 @@ class OpenCLMiner(Miner):
 							else:
 								data2 = data2[offset : offset + size]
 								patched = ''
-								for i in xrange(len(data2) / 8):
+								for i in range(len(data2) / 8):
 									instruction, = unpack('Q', data2[i * 8 : i * 8 + 8])
 									if (instruction&0x9003f00002001000) == 0x0001a00000000000:
 										instruction ^= (0x0001a00000000000 ^ 0x0000c00000000000)

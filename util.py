@@ -5,7 +5,7 @@ class Object(object):
 	pass
 
 def uint32(x):
-	return x & 0xffffffffL
+	return x & 0xffffffff
 
 def bytereverse(x):
 	return uint32(( ((x) << 24) | (((x) << 8) & 0x00ff0000) | (((x) >> 8) & 0x0000ff00) | ((x) >> 24) ))
@@ -14,7 +14,7 @@ def bytearray_to_uint32(x):
 	return uint32(((x[3]) << 24) | ((x[2]) << 16)  | ((x[1]) << 8) | x[0])
 
 def belowOrEquals(hash_, target):
-	for i in xrange(len(hash_) - 1, -1, -1):
+	for i in range(len(hash_) - 1, -1, -1):
 		reversed_ = bytereverse(hash_[i])
 		if reversed_ < target[i]:
 			return True
@@ -23,7 +23,7 @@ def belowOrEquals(hash_, target):
 	return True
 
 def chunks(l, n):
-	for i in xrange(0, len(l), n):
+	for i in range(0, len(l), n):
 		yield l[i:i+n]
 
 def tokenize(option, name, default=[0], cast=int):

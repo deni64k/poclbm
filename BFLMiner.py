@@ -1,10 +1,10 @@
 from Miner import Miner
-from Queue import Empty
+from queue import Empty
 from ioutil import find_udev, find_serial_by_id, find_com_ports
 from log import say_line, say_exception
 from serial.serialutil import SerialException
 from struct import pack, unpack, error
-from sys import maxint
+from sys import maxsize
 from time import time, sleep
 from util import Object, uint32, bytereverse
 import serial
@@ -47,20 +47,20 @@ def initialize(options):
 	ports = find_udev(check, 'BitFORCE*SHA256') or find_serial_by_id(check, 'BitFORCE_SHA256') or find_com_ports(check)
 
 	if not options.device and ports:
-		print '\nBFL devices on ports:\n'
-		for i in xrange(len(ports)):
-			print '[%d]\t%s' % (i, ports[i])
+		print('\nBFL devices on ports:\n')
+		for i in range(len(ports)):
+			print('[%d]\t%s' % (i, ports[i]))
 
 	miners = [
 		BFLMiner(i, ports[i], options)
-		for i in xrange(len(ports))
+		for i in range(len(ports))
 		if (
 			(not options.device) or
 			(i in options.device)
 		)
 	]
 
-	for i in xrange(len(miners)):
+	for i in range(len(miners)):
 		miners[i].cutoff_temp = options.cutoff_temp[min(i, len(options.cutoff_temp) - 1)]
 		miners[i].cutoff_interval = options.cutoff_interval[min(i, len(options.cutoff_interval) - 1)]
 	return miners
@@ -89,7 +89,7 @@ class BFLMiner(Miner):
 			response = request(self.device, b'ZDX')
 			if self.is_ok(response):
 				if self.switch.update_time:
-					self.job.time = bytereverse(uint32(long(time())) - self.job.time_delta)
+					self.job.time = bytereverse(uint32(int(time())) - self.job.time_delta)
 				data = b''.join([pack('<8I', *self.job.state), pack('<3I', self.job.merkle_end, self.job.time, self.job.difficulty)])
 				response = request(self.device, b''.join([b'>>>>>>>>', data, b'>>>>>>>>']))
 				if self.is_ok(response):
@@ -174,7 +174,7 @@ class BFLMiner(Miner):
 								continue
 							targetQ = self.job.targetQ
 							self.job.original_time = self.job.time
-							self.job.time_delta = uint32(long(time())) - bytereverse(self.job.time)
+							self.job.time_delta = uint32(int(time())) - bytereverse(self.job.time)
 
 					if not self.busy:
 						self.put_job()

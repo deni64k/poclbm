@@ -30,7 +30,7 @@ def sharound(a,b,c,d,e,f,g,h,x,K):
 def partial(state, merkle_end, time, difficulty, f):
 	state2 = list(state)
 	data = [merkle_end, time, difficulty]
-	for i in xrange(3):
+	for i in range(3):
 		(state2[~(i-4)&7], state2[~(i-8)&7]) = sharound(state2[(~(i-1)&7)],state2[~(i-2)&7],state2[~(i-3)&7],state2[~(i-4)&7],state2[~(i-5)&7],state2[~(i-6)&7],state2[~(i-7)&7],state2[~(i-8)&7],data[i],K[i])
 
 	f[0] = uint32(data[0] + (rotr(data[1], 7) ^ rotr(data[1], 18) ^ (data[1] >> 3)))
@@ -67,7 +67,7 @@ def calculateF(state, merkle_end, time, difficulty, f, state2):
 
 def sha256(state, data):
 	digest = list(state)
-	for i in xrange(64):
+	for i in range(64):
 		if i > 15:
 			data[i] = R(data[i-2], data[i-7], data[i-15], data[i-16])
 		(digest[~(i-4)&7], digest[~(i-8)&7]) = sharound(digest[(~(i-1)&7)],digest[~(i-2)&7],digest[~(i-3)&7],digest[~(i-4)&7],digest[~(i-5)&7],digest[~(i-6)&7],digest[~(i-7)&7],digest[~(i-8)&7],data[i],K[i])

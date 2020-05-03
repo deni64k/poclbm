@@ -1,13 +1,13 @@
 from Source import Source
 from base64 import b64encode
-from httplib import HTTPException
+from http.client import HTTPException
 from json import dumps, loads
 from log import say_exception, say_line
 from struct import pack
 from threading import Thread
 from time import sleep, time
-from urlparse import urlsplit
-import httplib
+from urllib.parse import urlsplit
+import http.client
 import socket
 import socks
 
@@ -66,8 +66,8 @@ class GetworkSource(Source):
 		if connection != None and connection.sock != None:
 			return connection, False
 
-		if proto == 'https': connector = httplib.HTTPSConnection
-		else: connector = httplib.HTTPConnection
+		if proto == 'https': connector = http.client.HTTPSConnection
+		else: connector = http.client.HTTPConnection
 
 		if not self.options.proxy:
 			return connector(host, strict=True), True
@@ -92,12 +92,12 @@ class GetworkSource(Source):
 			response = self.timeout_response(connection, timeout)
 			if not response:
 				return None
-			if response.status == httplib.UNAUTHORIZED:
+			if response.status == http.client.UNAUTHORIZED:
 				say_line('Wrong username or password for %s', self.server().name)
 				self.authorization_failed = True
 				raise NotAuthorized()
 			r = self.max_redirects
-			while response.status == httplib.TEMPORARY_REDIRECT:
+			while response.status == http.client.TEMPORARY_REDIRECT:
 				response.read()
 				url = response.getheader('Location', '')
 				if r == 0 or url == '': raise HTTPException('Too much or bad redirects')
@@ -144,13 +144,13 @@ class GetworkSource(Source):
 			self.switch.connection_ok()
 
 			return result['result']
-		except (IOError, httplib.HTTPException, ValueError, socks.ProxyError, NotAuthorized, RPCError):
+		except (IOError, http.client.HTTPException, ValueError, socks.ProxyError, NotAuthorized, RPCError):
 			self.stop()
 		except Exception:
 			say_exception()
 
 	def send_internal(self, result, nonce):
-		data = ''.join([result.header.encode('hex'), pack('<3I', long(result.time), long(result.difficulty), long(nonce)).encode('hex'), '000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000'])
+		data = ''.join([result.header.encode('hex'), pack('<3I', int(result.time), int(result.difficulty), int(nonce)).encode('hex'), '000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000'])
 		accepted = self.getwork(data)
 		if accepted != None:
 			self.switch.report(result.miner, nonce, accepted)
@@ -188,7 +188,7 @@ class GetworkSource(Source):
 						self.queue_work(result['result'])
 						if self.options.verbose:
 							say_line('long poll: new block %s%s', (result['result']['data'][56:64], result['result']['data'][48:56]))
-				except (IOError, httplib.HTTPException, ValueError, socks.ProxyError, NotAuthorized, RPCError):
+				except (IOError, http.client.HTTPException, ValueError, socks.ProxyError, NotAuthorized, RPCError):
 					say_exception('long poll IO error')
 					self.close_lp_connection()
 					sleep(.5)

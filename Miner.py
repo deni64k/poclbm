@@ -1,4 +1,4 @@
-from Queue import Queue
+from queue import Queue
 from threading import Thread
 from time import time
 
@@ -23,7 +23,7 @@ class Miner(object):
 		self.start_time = time()
 
 	def stop(self, message = None):
-		if message: print '\n%s' % message
+		if message: print('\n%s' % message)
 		self.should_stop = True
 
 	def update_rate(self, now, iterations, t, targetQ, rate_divisor=1000):
