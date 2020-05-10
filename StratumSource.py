@@ -112,6 +112,8 @@ class StratumSource(Source):
 						self.stop()
 					elif not self.authorize():
 						self.stop()
+					elif not self.suggest_difficulty(128):
+						say_line('Failed to suggest_difficulty')
 
 				except socket.error:
 					say_exception()
@@ -237,6 +239,8 @@ class StratumSource(Source):
 					self.last_submits_cleanup = now
 
 			#response to mining.authorize
+			elif message['id'] == 997:
+				pass
 			elif message['id'] == 998:
 				if not message['result']:
 					say_line('authorization failed with %s:%s@%s', (self.server().user, self.server().pwd, self.server().host))
@@ -261,6 +265,10 @@ class StratumSource(Source):
 			sleep(1)
 			if self.authorized != None: break
 		return self.authorized
+
+	def suggest_difficulty(self, diff):
+		self.send_message({'id': 997, 'method': 'mining.suggest_difficulty', 'params': [diff]})
+		return True
 
 	def send_internal(self, result, nonce):
 		job_id = result.job_id
